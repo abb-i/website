@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const faders = document.querySelectorAll('.fade-in');
+    const sliders = document.querySelectorAll('.slide-in-left, .slide-in-right');
 
     const appearOptions = {
         threshold: 0.1,
@@ -19,5 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     faders.forEach(fader => {
         appearOnScroll.observe(fader);
+    });
+
+    sliders.forEach(slider => {
+        appearOnScroll.observe(slider);
     });
 });
