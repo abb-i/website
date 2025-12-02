@@ -40,9 +40,9 @@ body {
     overflow: hidden;
 }
 
-/* TITLE */
+/* TITLE (Changed to Gloock font) */
 h1 {
-    font-family: 'Radley', serif;
+    font-family: 'Gloock', serif;
     font-size: clamp(32px, 7vw, 48px);
     margin: 8px 0;
     letter-spacing: 1.2px;
@@ -134,7 +134,7 @@ h1 {
 /* ---------- SECTIONS ---------- */
 .section {
     border-radius: 12px;
-    padding: 16px 130px 16px 16px;   /* ← Plenty of space for button */
+    padding: 16px 130px 16px 16px;   /* Plenty of space for button */
     margin-bottom: 12px;
     text-align: left;
     display: flex;
