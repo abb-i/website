@@ -10,61 +10,16 @@
     <link rel="shortcut icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&family=Libre+Baskerville:ital@1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Drawing Canvas -->
     <canvas id="drawingCanvas"></canvas>
 
-    <!-- Drawing Toolbar -->
-    <div class="draw-toolbar">
-        <div class="toolbar-section">
-            <button class="tool-btn active" data-tool="draw" title="Draw">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 19l7-7 3 3-7 7-3-3z"/>
-                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
-                    <path d="M2 2l7.586 7.586"/>
-                </svg>
-            </button>
-            <button class="tool-btn" data-tool="erase" title="Erase">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 20H7L3 16l6-6 5 5"/>
-                    <path d="M12 10l4 4"/>
-                </svg>
-            </button>
-        </div>
-
-        <div class="toolbar-section">
-            <div class="brush-size-control">
-                <input type="range" id="brushSize" min="1" max="20" value="3" class="brush-slider">
-                <span class="brush-preview"></span>
-            </div>
-        </div>
-
-        <div class="toolbar-section color-picker-section">
-            <button class="color-btn active" data-color="#FFD700" style="background: #FFD700;"></button>
-            <button class="color-btn" data-color="#FF6B6B" style="background: #FF6B6B;"></button>
-            <button class="color-btn" data-color="#4ECDC4" style="background: #4ECDC4;"></button>
-            <button class="color-btn" data-color="#95E1D3" style="background: #95E1D3;"></button>
-            <button class="color-btn" data-color="#F38181" style="background: #F38181;"></button>
-            <button class="color-btn" data-color="#AA96DA" style="background: #AA96DA;"></button>
-        </div>
-
-        <div class="toolbar-section">
-            <button class="tool-btn" id="clearCanvas" title="Clear All">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-
     <div class="container">
         <!-- Hero Section -->
         <div class="hero-section">
-            <div class="hero-accent">✨</div>
             <h1 class="hero-title">we create miracles.</h1>
             <p class="hero-subtitle">crafting meaningful experiences through conversations, words, and community</p>
         </div>
@@ -72,85 +27,41 @@
         <!-- Social Links -->
         <div class="social-grid">
             <a href="https://www.youtube.com/@abbiDogan" class="social-card youtube" aria-label="YouTube @abbiDogan">
-                <div class="social-icon-wrapper">
-                    <img src="youtube.png" alt="" class="social-icon">
-                </div>
+                <img src="youtube.png" alt="" class="social-icon">
                 <span class="social-label">@abbiDogan</span>
             </a>
             <a href="https://x.com/abbiDogan" class="social-card twitter" aria-label="X @abbiDogan">
-                <div class="social-icon-wrapper">
-                    <img src="x.png" alt="" class="social-icon">
-                </div>
+                <img src="x.png" alt="" class="social-icon">
                 <span class="social-label">@abbiDogan</span>
             </a>
             <a href="https://www.instagram.com/abbidogan/" class="social-card instagram" aria-label="Instagram @abbidogan">
-                <div class="social-icon-wrapper">
-                    <img src="instagram.png" alt="" class="social-icon">
-                </div>
+                <img src="instagram.png" alt="" class="social-icon">
                 <span class="social-label">@abbidogan</span>
             </a>
         </div>
 
-        <!-- Content Sections with Unique Designs -->
-        <div class="content-sections">
-            <!-- Podcast Section - Featured Card -->
-            <article class="content-card featured-card">
-                <div class="card-badge">Featured</div>
-                <div class="card-visual">
-                    <img src="podcast.png" alt="" class="card-icon floating">
-                    <div class="card-glow"></div>
-                </div>
-                <div class="card-content">
-                    <h2 class="card-title">focused conversations</h2>
-                    <p class="card-description">Deep dives with creatives, entrepreneurs and coaches who are shaping the future of meaningful work.</p>
-                    <a href="https://www.youtube.com/@abbiDogan" class="card-btn primary-btn">
-                        <span>listen now</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-            </article>
+        <!-- Content Sections -->
+        <div class="content-grid">
+            <a href="https://www.youtube.com/@abbiDogan" class="content-card podcast-card">
+                <img src="podcast.png" alt="" class="card-icon">
+                <h2 class="card-title">focused conversations</h2>
+                <p class="card-description">deep dives with creatives, entrepreneurs and coaches</p>
+            </a>
 
-            <!-- Newsletter Section - Minimal Card -->
-            <article class="content-card minimal-card">
-                <div class="minimal-header">
-                    <img src="email.png" alt="" class="minimal-icon">
-                    <div class="minimal-text">
-                        <h2 class="card-title">focused letters</h2>
-                        <p class="card-description">Sometimes daily, sometimes weekly. Always intentional. Thoughts on creativity, productivity, and living deliberately.</p>
-                    </div>
-                </div>
-                <a href="https://abbidogan.substack.com/" class="card-btn secondary-btn">
-                    <span>sign up</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                </a>
-            </article>
+            <a href="https://abbidogan.substack.com/" class="content-card newsletter-card">
+                <img src="email.png" alt="" class="card-icon">
+                <h2 class="card-title">focused letters</h2>
+                <p class="card-description">intentional thoughts on creativity and living deliberately</p>
+            </a>
 
-            <!-- Community Section - Bold Card -->
-            <article class="content-card bold-card">
-                <div class="bold-bg"></div>
-                <div class="bold-content">
-                    <img src="whop.png" alt="" class="bold-icon">
-                    <div class="bold-text">
-                        <h2 class="card-title">focused entrepreneur</h2>
-                        <p class="card-description">Transform endless scrolling into meaningful action. The only resource you need.</p>
-                    </div>
-                    <a href="https://whop.com/focused-entrepreneur" class="card-btn accent-btn">
-                        <span>learn more</span>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M5 12h14M12 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-            </article>
+            <a href="https://whop.com/focused-entrepreneur" class="content-card community-card">
+                <img src="whop.png" alt="" class="card-icon">
+                <h2 class="card-title">focused entrepreneur</h2>
+                <p class="card-description">transform scrolling into meaningful action</p>
+            </a>
         </div>
 
-        <footer class="footer">
-            <p>© 2025 Abbi · Creating miracles, one moment at a time</p>
-        </footer>
+        <footer class="footer">© 2025 Abbi</footer>
     </div>
 
     <script src="main.js"></script>
