@@ -10,7 +10,7 @@
     <link rel="shortcut icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,53 +18,56 @@
     <canvas id="drawingCanvas"></canvas>
 
     <div class="container">
-        <!-- Hero Section - Top Left -->
-        <div class="hero-section">
-            <h1 class="hero-title">we create<br>miracles.</h1>
-        </div>
+        <!-- Hero Title -->
+        <h1 class="hero-title">we create miracles.</h1>
 
-        <!-- Social Links - Top Right -->
-        <div class="social-section">
-            <a href="https://www.youtube.com/@abbiDogan" class="social-link youtube" aria-label="YouTube @abbiDogan">
+        <!-- Social Links Row -->
+        <div class="social-links">
+            <a href="https://www.youtube.com/@abbiDogan" class="social-link" aria-label="YouTube @abbiDogan">
                 <img src="youtube.png" alt="" class="social-icon">
                 <span>@abbiDogan</span>
             </a>
-            <a href="https://x.com/abbiDogan" class="social-link twitter" aria-label="X @abbiDogan">
+            <a href="https://x.com/abbiDogan" class="social-link" aria-label="X @abbiDogan">
                 <img src="x.png" alt="" class="social-icon">
                 <span>@abbiDogan</span>
             </a>
-            <a href="https://www.instagram.com/abbidogan/" class="social-link instagram" aria-label="Instagram @abbidogan">
+            <a href="https://www.instagram.com/abbidogan/" class="social-link" aria-label="Instagram @abbidogan">
                 <img src="instagram.png" alt="" class="social-icon">
                 <span>@abbidogan</span>
             </a>
         </div>
 
-        <!-- Main Content Cards - Asymmetric Layout -->
-        <a href="https://www.youtube.com/@abbiDogan" class="content-card podcast-card">
-            <img src="podcast.png" alt="" class="card-icon">
-            <div class="card-text">
-                <h2 class="card-title">focused conversations</h2>
-                <p class="card-description">deep dives with creatives, entrepreneurs and coaches</p>
-            </div>
-        </a>
+        <!-- Content Cards -->
+        <div class="content-cards">
+            <a href="https://www.youtube.com/@abbiDogan" class="card">
+                <img src="podcast.png" alt="" class="card-icon">
+                <div class="card-content">
+                    <h2 class="card-title">focused conversations</h2>
+                    <p class="card-description">deep dives with creatives, entrepreneurs and coaches</p>
+                </div>
+                <span class="card-action">listen now</span>
+            </a>
 
-        <a href="https://abbidogan.substack.com/" class="content-card newsletter-card">
-            <img src="email.png" alt="" class="card-icon">
-            <div class="card-text">
-                <h2 class="card-title">focused letters</h2>
-                <p class="card-description">intentional thoughts on creativity and living deliberately</p>
-            </div>
-        </a>
+            <a href="https://abbidogan.substack.com/" class="card">
+                <img src="email.png" alt="" class="card-icon">
+                <div class="card-content">
+                    <h2 class="card-title">focused letters</h2>
+                    <p class="card-description">intentional thoughts on creativity and living deliberately</p>
+                </div>
+                <span class="card-action">sign up</span>
+            </a>
 
-        <a href="https://whop.com/focused-entrepreneur" class="content-card community-card">
-            <img src="whop.png" alt="" class="card-icon">
-            <div class="card-text">
-                <h2 class="card-title">focused entrepreneur</h2>
-                <p class="card-description">transform scrolling into meaningful action</p>
-            </div>
-        </a>
+            <a href="https://whop.com/focused-entrepreneur" class="card">
+                <img src="whop.png" alt="" class="card-icon">
+                <div class="card-content">
+                    <h2 class="card-title">focused entrepreneur</h2>
+                    <p class="card-description">transform scrolling into meaningful action</p>
+                </div>
+                <span class="card-action">learn more</span>
+            </a>
+        </div>
 
-        <!-- Footer - Bottom -->
+        <!-- Footer -->
         <footer class="footer">© 2025 Abbi</footer>
     </div>
 
