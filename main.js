@@ -51,6 +51,20 @@ function addPoint(x, y) {
         // Smooth width transitions
         width = lastVelocity + (width - lastVelocity) * config.smoothingFactor;
         lastVelocity = width;
+
+        // Interpolate points if distance is too large (fix dotted line)
+        if (distance > 5) {
+            const steps = Math.ceil(distance / 3);
+            for (let i = 1; i < steps; i++) {
+                const t = i / steps;
+                trail.push({
+                    x: lastPoint.x + dx * t,
+                    y: lastPoint.y + dy * t,
+                    time: now,
+                    width: width
+                });
+            }
+        }
     }
 
     trail.push({ x, y, time: now, width });
@@ -74,41 +88,51 @@ function drawTrail() {
 
     if (trail.length < 2) return;
 
-    // Draw segments with fading opacity
-    for (let i = 1; i < trail.length; i++) {
+    // Draw entire trail as one smooth path with varying opacity
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Draw smooth continuous curve using Catmull-Rom style approach
+    for (let i = 0; i < trail.length - 1; i++) {
         const point = trail[i];
-        const prevPoint = trail[i - 1];
+        const nextPoint = trail[i + 1];
 
         // Calculate age-based opacity
         const age = now - point.time;
         const lifeRatio = 1 - (age / config.maxAge);
-        const opacity = Math.pow(lifeRatio, 1.5); // Gentle fade curve
+        const opacity = Math.pow(lifeRatio, 1.5);
 
-        // Calculate position-based fade (older points = more transparent)
+        // Calculate position-based fade
         const positionFade = i / trail.length;
         const combinedOpacity = opacity * Math.pow(positionFade, 0.5);
 
         if (combinedOpacity <= 0.01) continue;
 
         ctx.beginPath();
-        ctx.moveTo(prevPoint.x, prevPoint.y);
 
-        // Smooth curve to next point
-        if (i < trail.length - 1) {
-            const nextPoint = trail[i + 1];
-            const midX = (point.x + nextPoint.x) / 2;
-            const midY = (point.y + nextPoint.y) / 2;
-            ctx.quadraticCurveTo(point.x, point.y, midX, midY);
-        } else {
-            ctx.lineTo(point.x, point.y);
-        }
+        // Get control points for smooth curves
+        const p0 = i > 0 ? trail[i - 1] : point;
+        const p1 = point;
+        const p2 = nextPoint;
+        const p3 = i < trail.length - 2 ? trail[i + 2] : nextPoint;
+
+        // Start at current point
+        ctx.moveTo(p1.x, p1.y);
+
+        // Calculate smooth control points using Catmull-Rom to Bezier conversion
+        const tension = 0.5;
+        const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+        const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+        const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+        const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+
+        // Draw cubic Bezier curve for super smooth transitions
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
 
         // Style with gradient opacity
-        const avgWidth = (prevPoint.width + point.width) / 2;
+        const avgWidth = (p1.width + p2.width) / 2;
         ctx.lineWidth = avgWidth;
         ctx.strokeStyle = `rgba(${config.color.r}, ${config.color.g}, ${config.color.b}, ${combinedOpacity * 0.7})`;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
         ctx.stroke();
     }
 }
