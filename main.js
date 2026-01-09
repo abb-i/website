@@ -145,7 +145,7 @@ function animate() {
             const age = now - point.timestamp;
 
             // Calculate opacity based on age
-            const opacity = (1 - age / fadeTime) * 0.5;
+            const opacity = (1 - age / fadeTime) * 0.85;
 
             // Use quadratic curve for smoothness
             if (i < trail.length - 1) {
@@ -164,11 +164,11 @@ function animate() {
             const age = now - trail[i].timestamp;
             avgOpacity += (1 - age / fadeTime);
         }
-        avgOpacity = (avgOpacity / trail.length) * 0.5;
+        avgOpacity = (avgOpacity / trail.length) * 0.85;
 
         // Apply stroke with smooth gradient effect
         ctx.strokeStyle = `rgba(255, 184, 77, ${Math.max(0, avgOpacity)})`;
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 3;
         ctx.stroke();
     }
 
