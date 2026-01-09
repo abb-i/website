@@ -1,14 +1,8 @@
-console.log("✨ Abbi's creative portal is live.");
-
-// ============================================
-// FLOWING CURSOR TRAIL - Gentle & Aesthetic
-// Pen-like effect with smooth fade
-// ============================================
+console.log("Abbi's creative portal is live.");
 
 const canvas = document.getElementById('drawingCanvas');
 const ctx = canvas.getContext('2d');
 
-// Canvas setup
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -16,21 +10,18 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Trail configuration
 const config = {
-    color: { r: 255, g: 184, b: 77 }, // #FFB84D
-    maxAge: 800, // milliseconds
+    color: { r: 255, g: 184, b: 77 },
+    maxAge: 800,
     minWidth: 1.5,
     maxWidth: 3.5,
     smoothingFactor: 0.15,
     maxPoints: 80
 };
 
-// Trail state
 const trail = [];
 let lastVelocity = 0;
 
-// Add point with velocity-based width
 function addPoint(x, y) {
     const now = Date.now();
 
@@ -43,16 +34,13 @@ function addPoint(x, y) {
         const dy = y - lastPoint.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Calculate velocity (inverse for width - slow = thick, fast = thin)
         velocity = Math.min(distance, 15);
         const normalizedVelocity = velocity / 15;
         width = config.maxWidth - (normalizedVelocity * (config.maxWidth - config.minWidth));
 
-        // Smooth width transitions
         width = lastVelocity + (width - lastVelocity) * config.smoothingFactor;
         lastVelocity = width;
 
-        // Interpolate points if distance is too large (fix dotted line)
         if (distance > 5) {
             const steps = Math.ceil(distance / 3);
             for (let i = 1; i < steps; i++) {
@@ -69,40 +57,33 @@ function addPoint(x, y) {
 
     trail.push({ x, y, time: now, width });
 
-    // Limit trail length
     if (trail.length > config.maxPoints) {
         trail.shift();
     }
 }
 
-// Draw flowing trail with smooth curves
 function drawTrail() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const now = Date.now();
 
-    // Remove old points
     while (trail.length && now - trail[0].time > config.maxAge) {
         trail.shift();
     }
 
     if (trail.length < 2) return;
 
-    // Draw entire trail as one smooth path with varying opacity
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Draw smooth continuous curve using Catmull-Rom style approach
     for (let i = 0; i < trail.length - 1; i++) {
         const point = trail[i];
         const nextPoint = trail[i + 1];
 
-        // Calculate age-based opacity
         const age = now - point.time;
         const lifeRatio = 1 - (age / config.maxAge);
         const opacity = Math.pow(lifeRatio, 1.5);
 
-        // Calculate position-based fade
         const positionFade = i / trail.length;
         const combinedOpacity = opacity * Math.pow(positionFade, 0.5);
 
@@ -110,26 +91,21 @@ function drawTrail() {
 
         ctx.beginPath();
 
-        // Get control points for smooth curves
         const p0 = i > 0 ? trail[i - 1] : point;
         const p1 = point;
         const p2 = nextPoint;
         const p3 = i < trail.length - 2 ? trail[i + 2] : nextPoint;
 
-        // Start at current point
         ctx.moveTo(p1.x, p1.y);
 
-        // Calculate smooth control points using Catmull-Rom to Bezier conversion
         const tension = 0.5;
         const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
         const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
         const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
         const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
 
-        // Draw cubic Bezier curve for super smooth transitions
         ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
 
-        // Style with gradient opacity
         const avgWidth = (p1.width + p2.width) / 2;
         ctx.lineWidth = avgWidth;
         ctx.strokeStyle = `rgba(${config.color.r}, ${config.color.g}, ${config.color.b}, ${combinedOpacity * 0.7})`;
@@ -137,9 +113,7 @@ function drawTrail() {
     }
 }
 
-// Mouse/pointer movement
 document.addEventListener('pointermove', (e) => {
-    // Get coalesced events for smoother trail
     const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
 
     events.forEach(event => {
@@ -147,13 +121,11 @@ document.addEventListener('pointermove', (e) => {
     });
 });
 
-// Touch support
 document.addEventListener('touchmove', (e) => {
     const touch = e.touches[0];
     addPoint(touch.clientX, touch.clientY);
 }, { passive: true });
 
-// Animation loop
 function animate() {
     drawTrail();
     requestAnimationFrame(animate);
@@ -161,4 +133,4 @@ function animate() {
 
 animate();
 
-console.log('✨ Flowing cursor trail active');
+console.log('Flowing cursor trail active');

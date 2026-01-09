@@ -30,7 +30,6 @@ body {
     position: relative;
 }
 
-/* Drawing Canvas */
 #drawingCanvas {
     position: fixed;
     top: 0;
@@ -41,7 +40,6 @@ body {
     pointer-events: none;
 }
 
-/* Container - Centered Vertical Layout */
 .container {
     position: relative;
     z-index: 10;
@@ -56,7 +54,6 @@ body {
     gap: clamp(30px, 4vh, 40px);
 }
 
-/* Hero - Vintage Editorial Style */
 .hero {
     text-align: center;
 }
@@ -72,7 +69,6 @@ body {
     margin: 0;
 }
 
-/* Social Links - Horizontal Row */
 .social-links {
     display: flex;
     align-items: center;
@@ -108,7 +104,6 @@ body {
     filter: brightness(1.1);
 }
 
-/* Content Cards - Stacked Vertically */
 .content-cards {
     display: flex;
     flex-direction: column;
@@ -198,7 +193,6 @@ body {
     color: var(--bg-primary);
 }
 
-/* Footer */
 .footer {
     font-size: 12px;
     color: var(--text-secondary);
