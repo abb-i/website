@@ -1,7 +1,7 @@
-console.log("✨ Abbi's premium portal is live.");
+console.log("✨ Abbi's creative portal is live.");
 
 // ============================================
-// CURSOR TRAIL - Follows mouse movement, fades after 1 second
+// SMOOTH CURSOR TRAIL - No dots, just smooth lines
 // ============================================
 
 const canvas = document.getElementById('drawingCanvas');
@@ -15,98 +15,161 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Trail points - each point stored with timestamp
-const trailPoints = [];
-const maxTrailLength = 50; // Maximum points in trail
+// Smooth trail system
+const trail = [];
+const fadeTime = 1000; // 1 second fade
 
-// Drawing settings
-const trailColor = 'rgba(255, 215, 0, 0.6)'; // Gold with transparency
-const trailWidth = 2;
-const fadeTime = 1000; // 1 second in milliseconds
+// Drawing settings for smooth lines
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
 
-// Track mouse position
-let lastX = -100;
-let lastY = -100;
-let lastTime = Date.now();
+// Mouse tracking with interpolation
+let lastX = null;
+let lastY = null;
 
-// Mouse move - add trail points
+// Add point to trail with timestamp
+function addPoint(x, y) {
+    trail.push({
+        x: x,
+        y: y,
+        timestamp: Date.now()
+    });
+
+    // Limit trail length for performance
+    if (trail.length > 100) {
+        trail.shift();
+    }
+}
+
+// Mouse move handler with smooth interpolation
 document.addEventListener('mousemove', (e) => {
-    const currentTime = Date.now();
     const currentX = e.clientX;
     const currentY = e.clientY;
 
-    // Only add point if mouse actually moved
-    if (lastX !== currentX || lastY !== currentY) {
-        // Add new point
-        trailPoints.push({
-            x: currentX,
-            y: currentY,
-            timestamp: currentTime
-        });
+    // Interpolate between last position and current for smoothness
+    if (lastX !== null && lastY !== null) {
+        const dx = currentX - lastX;
+        const dy = currentY - lastY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-        // Limit trail length
-        if (trailPoints.length > maxTrailLength) {
-            trailPoints.shift();
+        // Add intermediate points if mouse moved far
+        const steps = Math.max(1, Math.floor(distance / 5));
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            addPoint(
+                lastX + dx * t,
+                lastY + dy * t
+            );
         }
+    } else {
+        addPoint(currentX, currentY);
     }
 
     lastX = currentX;
     lastY = currentY;
-    lastTime = currentTime;
+});
+
+// Reset when mouse leaves
+document.addEventListener('mouseleave', () => {
+    lastX = null;
+    lastY = null;
 });
 
 // Touch support for mobile
+let touchActive = false;
+
 document.addEventListener('touchmove', (e) => {
     e.preventDefault();
     const touch = e.touches[0];
-    const currentTime = Date.now();
+    const currentX = touch.clientX;
+    const currentY = touch.clientY;
 
-    trailPoints.push({
-        x: touch.clientX,
-        y: touch.clientY,
-        timestamp: currentTime
-    });
+    if (lastX !== null && lastY !== null) {
+        const dx = currentX - lastX;
+        const dy = currentY - lastY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-    if (trailPoints.length > maxTrailLength) {
-        trailPoints.shift();
+        const steps = Math.max(1, Math.floor(distance / 5));
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            addPoint(
+                lastX + dx * t,
+                lastY + dy * t
+            );
+        }
+    } else {
+        addPoint(currentX, currentY);
     }
+
+    lastX = currentX;
+    lastY = currentY;
+    touchActive = true;
 }, { passive: false });
 
-// Animation loop - render trail with fade effect
+document.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    lastX = touch.clientX;
+    lastY = touch.clientY;
+    touchActive = true;
+});
+
+document.addEventListener('touchend', () => {
+    lastX = null;
+    lastY = null;
+    touchActive = false;
+});
+
+// Animation loop - smooth rendering
 function animate() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const now = Date.now();
 
-    // Remove old points (older than fadeTime)
-    while (trailPoints.length > 0 && now - trailPoints[0].timestamp > fadeTime) {
-        trailPoints.shift();
+    // Remove old points
+    while (trail.length > 0 && now - trail[0].timestamp > fadeTime) {
+        trail.shift();
     }
 
-    // Draw trail
-    if (trailPoints.length > 1) {
-        for (let i = 0; i < trailPoints.length - 1; i++) {
-            const point = trailPoints[i];
-            const nextPoint = trailPoints[i + 1];
+    // Draw smooth continuous trail
+    if (trail.length > 1) {
+        // Start path
+        ctx.beginPath();
+
+        // Move to first point
+        ctx.moveTo(trail[0].x, trail[0].y);
+
+        // Draw smooth curve through all points using quadratic curves
+        for (let i = 1; i < trail.length; i++) {
+            const point = trail[i];
             const age = now - point.timestamp;
 
-            // Skip if too old
-            if (age > fadeTime) continue;
-
             // Calculate opacity based on age
-            const opacity = (1 - age / fadeTime) * 0.6;
+            const opacity = (1 - age / fadeTime) * 0.5;
 
-            // Draw line segment
-            ctx.beginPath();
-            ctx.moveTo(point.x, point.y);
-            ctx.lineTo(nextPoint.x, nextPoint.y);
-            ctx.strokeStyle = `rgba(255, 215, 0, ${opacity})`;
-            ctx.lineWidth = trailWidth;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.stroke();
+            // Use quadratic curve for smoothness
+            if (i < trail.length - 1) {
+                const nextPoint = trail[i + 1];
+                const midX = (point.x + nextPoint.x) / 2;
+                const midY = (point.y + nextPoint.y) / 2;
+                ctx.quadraticCurveTo(point.x, point.y, midX, midY);
+            } else {
+                ctx.lineTo(point.x, point.y);
+            }
         }
+
+        // Calculate average opacity from all points
+        let avgOpacity = 0;
+        for (let i = 0; i < trail.length; i++) {
+            const age = now - trail[i].timestamp;
+            avgOpacity += (1 - age / fadeTime);
+        }
+        avgOpacity = (avgOpacity / trail.length) * 0.5;
+
+        // Apply stroke with smooth gradient effect
+        ctx.strokeStyle = `rgba(255, 184, 77, ${Math.max(0, avgOpacity)})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
     }
 
     requestAnimationFrame(animate);
@@ -115,4 +178,4 @@ function animate() {
 // Start animation loop
 animate();
 
-console.log('🎨 Move your cursor to see the magical trail!');
+console.log('🎨 Move your cursor to see the smooth trail effect!');
