@@ -1,7 +1,7 @@
 console.log("✨ Abbi's premium portal is live.");
 
 // ============================================
-// CURSOR TRAIL DRAWING - Auto-fading
+// DRAWING GIMMICK - Disappears after 1 second
 // ============================================
 
 const canvas = document.getElementById('drawingCanvas');
@@ -15,95 +15,128 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
+// Drawing particles - each stroke is stored with timestamp
+const strokes = [];
+
 // Drawing settings
-const trailColor = 'rgba(255, 215, 0, 0.6)'; // Gold with transparency
-const trailWidth = 2;
-const fadeSpeed = 0.02; // How fast the trail fades
+const strokeColor = 'rgba(255, 215, 0, 0.8)'; // Gold
+const strokeWidth = 3;
+const fadeTime = 1000; // 1 second in milliseconds
 
-// Set up canvas for drawing
-ctx.strokeStyle = trailColor;
-ctx.lineWidth = trailWidth;
-ctx.lineCap = 'round';
-ctx.lineJoin = 'round';
+// Mouse tracking
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
 
-// Store mouse position
-let mouseX = -100;
-let mouseY = -100;
-let lastX = -100;
-let lastY = -100;
-let isMoving = false;
+// Mouse down - start drawing
+document.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+});
 
-// Track mouse movement
+// Mouse move - draw line
 document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    if (!isDrawing) return;
 
-    // Only draw if we have a previous position
-    if (lastX !== -100 && lastY !== -100) {
-        isMoving = true;
-        drawLine(lastX, lastY, mouseX, mouseY);
-    }
+    const currentX = e.clientX;
+    const currentY = e.clientY;
 
-    lastX = mouseX;
-    lastY = mouseY;
+    // Store this stroke with timestamp
+    strokes.push({
+        x1: lastX,
+        y1: lastY,
+        x2: currentX,
+        y2: currentY,
+        timestamp: Date.now()
+    });
+
+    lastX = currentX;
+    lastY = currentY;
 });
 
-// Draw line function
-function drawLine(x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
+// Mouse up - stop drawing
+document.addEventListener('mouseup', () => {
+    isDrawing = false;
+});
 
-// Auto-fade effect
-function fadeCanvas() {
-    // Create a semi-transparent rectangle over the entire canvas
-    ctx.fillStyle = 'rgba(10, 14, 39, ' + fadeSpeed + ')';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    requestAnimationFrame(fadeCanvas);
-}
-
-// Start the fade animation
-fadeCanvas();
-
-// Reset position when mouse leaves window
+// Mouse leave - stop drawing
 document.addEventListener('mouseleave', () => {
-    lastX = -100;
-    lastY = -100;
-    isMoving = false;
+    isDrawing = false;
 });
 
-// Touch support for mobile
-let touchStarted = false;
-
-document.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    mouseX = touch.clientX;
-    mouseY = touch.clientY;
-
-    if (touchStarted && lastX !== -100 && lastY !== -100) {
-        drawLine(lastX, lastY, mouseX, mouseY);
-    }
-
-    lastX = mouseX;
-    lastY = mouseY;
-    touchStarted = true;
-}, { passive: false });
+// Touch support
+let touchActive = false;
 
 document.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchActive = true;
     const touch = e.touches[0];
     lastX = touch.clientX;
     lastY = touch.clientY;
-    touchStarted = true;
-});
+}, { passive: false });
+
+document.addEventListener('touchmove', (e) => {
+    if (!touchActive) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const currentX = touch.clientX;
+    const currentY = touch.clientY;
+
+    // Store this stroke with timestamp
+    strokes.push({
+        x1: lastX,
+        y1: lastY,
+        x2: currentX,
+        y2: currentY,
+        timestamp: Date.now()
+    });
+
+    lastX = currentX;
+    lastY = currentY;
+}, { passive: false });
 
 document.addEventListener('touchend', () => {
-    lastX = -100;
-    lastY = -100;
-    touchStarted = false;
+    touchActive = false;
 });
 
-console.log('🎨 Move your cursor to draw a trail that fades away!');
+// Animation loop - render and fade strokes
+function animate() {
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const now = Date.now();
+
+    // Draw all strokes with opacity based on age
+    for (let i = strokes.length - 1; i >= 0; i--) {
+        const stroke = strokes[i];
+        const age = now - stroke.timestamp;
+
+        // Remove strokes older than fadeTime
+        if (age > fadeTime) {
+            strokes.splice(i, 1);
+            continue;
+        }
+
+        // Calculate opacity (1 to 0 over fadeTime)
+        const opacity = 1 - (age / fadeTime);
+
+        // Draw stroke
+        ctx.beginPath();
+        ctx.moveTo(stroke.x1, stroke.y1);
+        ctx.lineTo(stroke.x2, stroke.y2);
+        ctx.strokeStyle = `rgba(255, 215, 0, ${opacity * 0.8})`;
+        ctx.lineWidth = strokeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+    }
+
+    requestAnimationFrame(animate);
+}
+
+// Start animation loop
+animate();
+
+console.log('🎨 Click and drag to draw - your marks fade after 1 second!');

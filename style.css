@@ -44,13 +44,12 @@ body {
     pointer-events: none;
 }
 
-/* Container - Everything fits in viewport */
+/* Container - Everything fits in viewport, 70% central space */
 .container {
     position: relative;
     z-index: 10;
-    width: 100%;
+    width: 70%;
     height: 100vh;
-    max-width: 1200px;
     margin: 0 auto;
     padding: clamp(20px, 3vh, 40px) clamp(20px, 3vw, 40px);
     display: flex;
@@ -75,16 +74,8 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    margin-bottom: clamp(8px, 1vh, 16px);
+    margin: 0;
     letter-spacing: -0.02em;
-}
-
-.hero-subtitle {
-    font-size: clamp(13px, 1.4vw, 18px);
-    color: var(--text-secondary);
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.6;
 }
 
 /* Social Grid */
@@ -254,6 +245,10 @@ body {
 
 /* Responsive - Mobile */
 @media (max-width: 768px) {
+    .container {
+        width: 90%;
+    }
+
     .social-grid {
         max-width: 100%;
     }
@@ -271,15 +266,14 @@ body {
 
     .hero-title {
         font-size: clamp(28px, 4.5vw, 48px);
-        margin-bottom: 6px;
-    }
-
-    .hero-subtitle {
-        font-size: clamp(12px, 1.3vw, 16px);
     }
 }
 
 @media (max-width: 480px) {
+    .container {
+        width: 95%;
+    }
+
     .social-grid {
         grid-template-columns: 1fr;
         gap: 10px;
