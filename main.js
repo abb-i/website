@@ -1,7 +1,7 @@
 console.log("✨ Abbi's creative portal is live.");
 
 // ============================================
-// SMOOTH TAPERED CURSOR TRAIL
+// SIMPLE CURSOR TRAIL - Clean & Minimal
 // ============================================
 
 const canvas = document.getElementById('drawingCanvas');
@@ -15,160 +15,107 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Trail system
-const trail = [];
-const fadeTime = 2500; // 2.5 seconds fade
+// Trail points
+const points = [];
+const maxAge = 1500; // 1.5 seconds
 
-// Mouse tracking
+// Track mouse
 let lastX = null;
 let lastY = null;
 
-// Add point to trail
-function addPoint(x, y) {
-    trail.push({
-        x: x,
-        y: y,
-        timestamp: Date.now()
-    });
-
-    if (trail.length > 120) {
-        trail.shift();
-    }
-}
-
-// Mouse move handler with extra smoothness
+// Mouse move
 document.addEventListener('mousemove', (e) => {
-    const currentX = e.clientX;
-    const currentY = e.clientY;
+    const now = Date.now();
+    points.push({ x: e.clientX, y: e.clientY, time: now });
 
-    // Ultra smooth interpolation
-    if (lastX !== null && lastY !== null) {
-        const dx = currentX - lastX;
-        const dy = currentY - lastY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    // Smooth interpolation
+    if (lastX !== null) {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
-        const steps = Math.max(1, Math.ceil(distance / 1.5));
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps;
-            // Smooth easing for extra smoothness
-            const smoothT = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-            addPoint(
-                lastX + dx * smoothT,
-                lastY + dy * smoothT
-            );
+        if (dist > 2) {
+            const steps = Math.floor(dist / 2);
+            for (let i = 1; i < steps; i++) {
+                const t = i / steps;
+                points.push({
+                    x: lastX + dx * t,
+                    y: lastY + dy * t,
+                    time: now
+                });
+            }
         }
-    } else {
-        addPoint(currentX, currentY);
     }
 
-    lastX = currentX;
-    lastY = currentY;
-});
+    lastX = e.clientX;
+    lastY = e.clientY;
 
-// Reset when mouse leaves
-document.addEventListener('mouseleave', () => {
-    lastX = null;
-    lastY = null;
+    // Limit points
+    if (points.length > 100) {
+        points.shift();
+    }
 });
 
 // Touch support
 document.addEventListener('touchmove', (e) => {
     e.preventDefault();
     const touch = e.touches[0];
-    const currentX = touch.clientX;
-    const currentY = touch.clientY;
+    const now = Date.now();
+    points.push({ x: touch.clientX, y: touch.clientY, time: now });
 
-    if (lastX !== null && lastY !== null) {
-        const dx = currentX - lastX;
-        const dy = currentY - lastY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    if (lastX !== null) {
+        const dx = touch.clientX - lastX;
+        const dy = touch.clientY - lastY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
-        const steps = Math.max(1, Math.ceil(distance / 1.5));
-        for (let i = 0; i <= steps; i++) {
-            const t = i / steps;
-            const smoothT = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-            addPoint(
-                lastX + dx * smoothT,
-                lastY + dy * smoothT
-            );
+        if (dist > 2) {
+            const steps = Math.floor(dist / 2);
+            for (let i = 1; i < steps; i++) {
+                const t = i / steps;
+                points.push({
+                    x: lastX + dx * t,
+                    y: lastY + dy * t,
+                    time: now
+                });
+            }
         }
-    } else {
-        addPoint(currentX, currentY);
     }
 
-    lastX = currentX;
-    lastY = currentY;
-}, { passive: false });
-
-document.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
     lastX = touch.clientX;
     lastY = touch.clientY;
-});
+}, { passive: false });
 
-document.addEventListener('touchend', () => {
-    lastX = null;
-    lastY = null;
-});
-
-// Animation loop with tapered effect
-function animate() {
-    // Clear canvas completely
+// Render
+function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const now = Date.now();
 
     // Remove old points
-    while (trail.length > 0 && now - trail[0].timestamp > fadeTime) {
-        trail.shift();
+    while (points.length && now - points[0].time > maxAge) {
+        points.shift();
     }
 
-    // Draw smooth tapered trail
-    if (trail.length > 1) {
-        // Draw trail in segments with varying thickness
-        for (let i = 0; i < trail.length - 1; i++) {
-            const point = trail[i];
-            const nextPoint = trail[i + 1];
-            const age = now - point.timestamp;
+    // Draw trail
+    if (points.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
 
-            // Calculate fade factor (0 to 1, where 1 is newest)
-            const fadeFactor = 1 - (age / fadeTime);
-
-            // Opacity fades out
-            const opacity = fadeFactor * 0.8;
-
-            // Line width tapers from 5px to 0.5px
-            const lineWidth = 0.5 + (fadeFactor * 4.5);
-
-            if (opacity > 0.05) {
-                ctx.beginPath();
-                ctx.moveTo(point.x, point.y);
-
-                // Use quadratic curve for smoothness
-                if (i < trail.length - 2) {
-                    const nextNextPoint = trail[i + 2];
-                    const cpX = nextPoint.x;
-                    const cpY = nextPoint.y;
-                    const endX = (nextPoint.x + nextNextPoint.x) / 2;
-                    const endY = (nextPoint.y + nextNextPoint.y) / 2;
-                    ctx.quadraticCurveTo(cpX, cpY, endX, endY);
-                } else {
-                    ctx.lineTo(nextPoint.x, nextPoint.y);
-                }
-
-                ctx.strokeStyle = `rgba(255, 184, 77, ${opacity})`;
-                ctx.lineWidth = lineWidth;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.stroke();
-            }
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
         }
+
+        // Simple style
+        ctx.strokeStyle = 'rgba(255, 184, 77, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
     }
 
-    requestAnimationFrame(animate);
+    requestAnimationFrame(render);
 }
 
-// Start animation
-animate();
+render();
 
-console.log('🎨 Move your cursor to see the smooth tapered trail!');
+console.log('🎨 Simple cursor trail active');
