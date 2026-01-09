@@ -1,7 +1,8 @@
 console.log("✨ Abbi's creative portal is live.");
 
 // ============================================
-// SIMPLE CURSOR TRAIL - Clean & Minimal
+// PEN-LIKE DRAWING FEATURE
+// Natural, smooth strokes with pressure simulation
 // ============================================
 
 const canvas = document.getElementById('drawingCanvas');
@@ -9,113 +10,167 @@ const ctx = canvas.getContext('2d');
 
 // Canvas setup
 function resizeCanvas() {
+    const oldCanvas = ctx.getImageData(0, 0, canvas.width, canvas.height);
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    ctx.putImageData(oldCanvas, 0, 0);
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Trail points
-const points = [];
-const maxAge = 1500; // 1.5 seconds
+// Drawing state
+let isDrawing = false;
+let currentStroke = [];
+const strokes = [];
 
-// Track mouse
-let lastX = null;
-let lastY = null;
+// Drawing configuration
+const config = {
+    color: '#FFB84D',
+    minWidth: 1,
+    maxWidth: 4,
+    smoothing: 0.5,
+    velocityFilterWeight: 0.7
+};
 
-// Mouse move
-document.addEventListener('mousemove', (e) => {
-    const now = Date.now();
-    points.push({ x: e.clientX, y: e.clientY, time: now });
+// Velocity tracking for pressure simulation
+let lastPoint = null;
+let lastVelocity = 0;
 
-    // Smooth interpolation
-    if (lastX !== null) {
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+// Calculate line width based on velocity (inverse relationship)
+function getLineWidth(velocity) {
+    const normalizedVelocity = Math.min(velocity, 10) / 10;
+    const width = config.maxWidth - (normalizedVelocity * (config.maxWidth - config.minWidth));
 
-        if (dist > 2) {
-            const steps = Math.floor(dist / 2);
-            for (let i = 1; i < steps; i++) {
-                const t = i / steps;
-                points.push({
-                    x: lastX + dx * t,
-                    y: lastY + dy * t,
-                    time: now
-                });
-            }
+    // Smooth the width changes
+    const smoothedWidth = lastVelocity * config.velocityFilterWeight + width * (1 - config.velocityFilterWeight);
+    lastVelocity = smoothedWidth;
+
+    return smoothedWidth;
+}
+
+// Add point to current stroke
+function addPoint(x, y, pressure = 0.5) {
+    const point = { x, y, pressure };
+
+    if (lastPoint) {
+        const dx = x - lastPoint.x;
+        const dy = y - lastPoint.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const velocity = distance;
+
+        point.width = getLineWidth(velocity);
+
+        // Add pressure from stylus if available, otherwise use velocity-based
+        if (pressure === 0.5) {
+            // Simulate pressure based on velocity
+            point.width = getLineWidth(velocity);
+        } else {
+            // Use actual stylus pressure
+            point.width = config.minWidth + (pressure * (config.maxWidth - config.minWidth));
         }
+    } else {
+        point.width = (config.minWidth + config.maxWidth) / 2;
     }
 
-    lastX = e.clientX;
-    lastY = e.clientY;
+    currentStroke.push(point);
+    lastPoint = point;
+}
 
-    // Limit points
-    if (points.length > 100) {
-        points.shift();
-    }
-});
+// Draw stroke using quadratic Bezier curves
+function drawStroke(stroke) {
+    if (stroke.length < 2) return;
 
-// Touch support
-document.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const now = Date.now();
-    points.push({ x: touch.clientX, y: touch.clientY, time: now });
+    ctx.beginPath();
+    ctx.moveTo(stroke[0].x, stroke[0].y);
 
-    if (lastX !== null) {
-        const dx = touch.clientX - lastX;
-        const dy = touch.clientY - lastY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+    // Draw smooth curves through all points
+    for (let i = 1; i < stroke.length - 1; i++) {
+        const point = stroke[i];
+        const nextPoint = stroke[i + 1];
 
-        if (dist > 2) {
-            const steps = Math.floor(dist / 2);
-            for (let i = 1; i < steps; i++) {
-                const t = i / steps;
-                points.push({
-                    x: lastX + dx * t,
-                    y: lastY + dy * t,
-                    time: now
-                });
-            }
-        }
-    }
+        // Use midpoint for smooth quadratic curve
+        const midX = (point.x + nextPoint.x) / 2;
+        const midY = (point.y + nextPoint.y) / 2;
 
-    lastX = touch.clientX;
-    lastY = touch.clientY;
-}, { passive: false });
-
-// Render
-function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const now = Date.now();
-
-    // Remove old points
-    while (points.length && now - points[0].time > maxAge) {
-        points.shift();
-    }
-
-    // Draw trail
-    if (points.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-
-        for (let i = 1; i < points.length; i++) {
-            ctx.lineTo(points[i].x, points[i].y);
-        }
-
-        // Simple style
-        ctx.strokeStyle = 'rgba(255, 184, 77, 0.6)';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = point.width;
+        ctx.strokeStyle = config.color;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+
+        ctx.quadraticCurveTo(point.x, point.y, midX, midY);
         ctx.stroke();
     }
 
-    requestAnimationFrame(render);
+    // Draw the last point
+    const lastIdx = stroke.length - 1;
+    if (lastIdx > 0) {
+        ctx.lineWidth = stroke[lastIdx].width;
+        ctx.lineTo(stroke[lastIdx].x, stroke[lastIdx].y);
+        ctx.stroke();
+    }
 }
 
-render();
+// Redraw all strokes
+function redrawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-console.log('🎨 Simple cursor trail active');
+    strokes.forEach(stroke => drawStroke(stroke));
+
+    if (isDrawing && currentStroke.length > 0) {
+        drawStroke(currentStroke);
+    }
+}
+
+// Pointer event handlers
+canvas.addEventListener('pointerdown', (e) => {
+    isDrawing = true;
+    currentStroke = [];
+    lastPoint = null;
+    lastVelocity = 0;
+
+    addPoint(e.clientX, e.clientY, e.pressure);
+    redrawCanvas();
+});
+
+canvas.addEventListener('pointermove', (e) => {
+    if (!isDrawing) return;
+
+    // Get coalesced events for higher fidelity
+    const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+
+    events.forEach(event => {
+        addPoint(event.clientX, event.clientY, event.pressure);
+    });
+
+    redrawCanvas();
+});
+
+canvas.addEventListener('pointerup', (e) => {
+    if (!isDrawing) return;
+
+    isDrawing = false;
+
+    if (currentStroke.length > 0) {
+        strokes.push([...currentStroke]);
+        currentStroke = [];
+    }
+
+    lastPoint = null;
+    redrawCanvas();
+});
+
+canvas.addEventListener('pointercancel', (e) => {
+    isDrawing = false;
+    currentStroke = [];
+    lastPoint = null;
+    redrawCanvas();
+});
+
+// Add clear functionality (double-click to clear)
+canvas.addEventListener('dblclick', () => {
+    strokes.length = 0;
+    currentStroke = [];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+console.log('✏️ Pen-like drawing active (double-click to clear)');
