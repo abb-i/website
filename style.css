@@ -38,8 +38,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: 1;
-    cursor: crosshair;
-    touch-action: none;
+    pointer-events: none;
 }
 
 /* Container - Centered Vertical Layout */
@@ -55,11 +54,6 @@ body {
     justify-content: center;
     align-items: center;
     gap: clamp(30px, 4vh, 40px);
-    pointer-events: none;
-}
-
-.container > * {
-    pointer-events: auto;
 }
 
 /* Hero - Vintage Editorial Style */

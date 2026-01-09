@@ -1,8 +1,8 @@
 console.log("✨ Abbi's creative portal is live.");
 
 // ============================================
-// PEN-LIKE DRAWING FEATURE
-// Natural, smooth strokes with pressure simulation
+// FLOWING CURSOR TRAIL - Gentle & Aesthetic
+// Pen-like effect with smooth fade
 // ============================================
 
 const canvas = document.getElementById('drawingCanvas');
@@ -10,167 +10,131 @@ const ctx = canvas.getContext('2d');
 
 // Canvas setup
 function resizeCanvas() {
-    const oldCanvas = ctx.getImageData(0, 0, canvas.width, canvas.height);
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    ctx.putImageData(oldCanvas, 0, 0);
 }
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Drawing state
-let isDrawing = false;
-let currentStroke = [];
-const strokes = [];
-
-// Drawing configuration
+// Trail configuration
 const config = {
-    color: '#FFB84D',
-    minWidth: 1,
-    maxWidth: 4,
-    smoothing: 0.5,
-    velocityFilterWeight: 0.7
+    color: { r: 255, g: 184, b: 77 }, // #FFB84D
+    maxAge: 800, // milliseconds
+    minWidth: 1.5,
+    maxWidth: 3.5,
+    smoothingFactor: 0.15,
+    maxPoints: 80
 };
 
-// Velocity tracking for pressure simulation
-let lastPoint = null;
+// Trail state
+const trail = [];
 let lastVelocity = 0;
 
-// Calculate line width based on velocity (inverse relationship)
-function getLineWidth(velocity) {
-    const normalizedVelocity = Math.min(velocity, 10) / 10;
-    const width = config.maxWidth - (normalizedVelocity * (config.maxWidth - config.minWidth));
+// Add point with velocity-based width
+function addPoint(x, y) {
+    const now = Date.now();
 
-    // Smooth the width changes
-    const smoothedWidth = lastVelocity * config.velocityFilterWeight + width * (1 - config.velocityFilterWeight);
-    lastVelocity = smoothedWidth;
+    let velocity = 0;
+    let width = (config.minWidth + config.maxWidth) / 2;
 
-    return smoothedWidth;
-}
-
-// Add point to current stroke
-function addPoint(x, y, pressure = 0.5) {
-    const point = { x, y, pressure };
-
-    if (lastPoint) {
+    if (trail.length > 0) {
+        const lastPoint = trail[trail.length - 1];
         const dx = x - lastPoint.x;
         const dy = y - lastPoint.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const velocity = distance;
 
-        point.width = getLineWidth(velocity);
+        // Calculate velocity (inverse for width - slow = thick, fast = thin)
+        velocity = Math.min(distance, 15);
+        const normalizedVelocity = velocity / 15;
+        width = config.maxWidth - (normalizedVelocity * (config.maxWidth - config.minWidth));
 
-        // Add pressure from stylus if available, otherwise use velocity-based
-        if (pressure === 0.5) {
-            // Simulate pressure based on velocity
-            point.width = getLineWidth(velocity);
-        } else {
-            // Use actual stylus pressure
-            point.width = config.minWidth + (pressure * (config.maxWidth - config.minWidth));
-        }
-    } else {
-        point.width = (config.minWidth + config.maxWidth) / 2;
+        // Smooth width transitions
+        width = lastVelocity + (width - lastVelocity) * config.smoothingFactor;
+        lastVelocity = width;
     }
 
-    currentStroke.push(point);
-    lastPoint = point;
-}
+    trail.push({ x, y, time: now, width });
 
-// Draw stroke using quadratic Bezier curves
-function drawStroke(stroke) {
-    if (stroke.length < 2) return;
-
-    ctx.beginPath();
-    ctx.moveTo(stroke[0].x, stroke[0].y);
-
-    // Draw smooth curves through all points
-    for (let i = 1; i < stroke.length - 1; i++) {
-        const point = stroke[i];
-        const nextPoint = stroke[i + 1];
-
-        // Use midpoint for smooth quadratic curve
-        const midX = (point.x + nextPoint.x) / 2;
-        const midY = (point.y + nextPoint.y) / 2;
-
-        ctx.lineWidth = point.width;
-        ctx.strokeStyle = config.color;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        ctx.quadraticCurveTo(point.x, point.y, midX, midY);
-        ctx.stroke();
-    }
-
-    // Draw the last point
-    const lastIdx = stroke.length - 1;
-    if (lastIdx > 0) {
-        ctx.lineWidth = stroke[lastIdx].width;
-        ctx.lineTo(stroke[lastIdx].x, stroke[lastIdx].y);
-        ctx.stroke();
+    // Limit trail length
+    if (trail.length > config.maxPoints) {
+        trail.shift();
     }
 }
 
-// Redraw all strokes
-function redrawCanvas() {
+// Draw flowing trail with smooth curves
+function drawTrail() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    strokes.forEach(stroke => drawStroke(stroke));
+    const now = Date.now();
 
-    if (isDrawing && currentStroke.length > 0) {
-        drawStroke(currentStroke);
+    // Remove old points
+    while (trail.length && now - trail[0].time > config.maxAge) {
+        trail.shift();
+    }
+
+    if (trail.length < 2) return;
+
+    // Draw segments with fading opacity
+    for (let i = 1; i < trail.length; i++) {
+        const point = trail[i];
+        const prevPoint = trail[i - 1];
+
+        // Calculate age-based opacity
+        const age = now - point.time;
+        const lifeRatio = 1 - (age / config.maxAge);
+        const opacity = Math.pow(lifeRatio, 1.5); // Gentle fade curve
+
+        // Calculate position-based fade (older points = more transparent)
+        const positionFade = i / trail.length;
+        const combinedOpacity = opacity * Math.pow(positionFade, 0.5);
+
+        if (combinedOpacity <= 0.01) continue;
+
+        ctx.beginPath();
+        ctx.moveTo(prevPoint.x, prevPoint.y);
+
+        // Smooth curve to next point
+        if (i < trail.length - 1) {
+            const nextPoint = trail[i + 1];
+            const midX = (point.x + nextPoint.x) / 2;
+            const midY = (point.y + nextPoint.y) / 2;
+            ctx.quadraticCurveTo(point.x, point.y, midX, midY);
+        } else {
+            ctx.lineTo(point.x, point.y);
+        }
+
+        // Style with gradient opacity
+        const avgWidth = (prevPoint.width + point.width) / 2;
+        ctx.lineWidth = avgWidth;
+        ctx.strokeStyle = `rgba(${config.color.r}, ${config.color.g}, ${config.color.b}, ${combinedOpacity * 0.7})`;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
     }
 }
 
-// Pointer event handlers
-canvas.addEventListener('pointerdown', (e) => {
-    isDrawing = true;
-    currentStroke = [];
-    lastPoint = null;
-    lastVelocity = 0;
-
-    addPoint(e.clientX, e.clientY, e.pressure);
-    redrawCanvas();
-});
-
-canvas.addEventListener('pointermove', (e) => {
-    if (!isDrawing) return;
-
-    // Get coalesced events for higher fidelity
+// Mouse/pointer movement
+document.addEventListener('pointermove', (e) => {
+    // Get coalesced events for smoother trail
     const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
 
     events.forEach(event => {
-        addPoint(event.clientX, event.clientY, event.pressure);
+        addPoint(event.clientX, event.clientY);
     });
-
-    redrawCanvas();
 });
 
-canvas.addEventListener('pointerup', (e) => {
-    if (!isDrawing) return;
+// Touch support
+document.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    addPoint(touch.clientX, touch.clientY);
+}, { passive: true });
 
-    isDrawing = false;
+// Animation loop
+function animate() {
+    drawTrail();
+    requestAnimationFrame(animate);
+}
 
-    if (currentStroke.length > 0) {
-        strokes.push([...currentStroke]);
-        currentStroke = [];
-    }
+animate();
 
-    lastPoint = null;
-    redrawCanvas();
-});
-
-canvas.addEventListener('pointercancel', (e) => {
-    isDrawing = false;
-    currentStroke = [];
-    lastPoint = null;
-    redrawCanvas();
-});
-
-// Add clear functionality (double-click to clear)
-canvas.addEventListener('dblclick', () => {
-    strokes.length = 0;
-    currentStroke = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
-
-console.log('✏️ Pen-like drawing active (double-click to clear)');
+console.log('✨ Flowing cursor trail active');
