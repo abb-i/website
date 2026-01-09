@@ -1,7 +1,7 @@
 console.log("✨ Abbi's premium portal is live.");
 
 // ============================================
-// DRAWING GIMMICK - Disappears after 1 second
+// CURSOR TRAIL - Follows mouse movement, fades after 1 second
 // ============================================
 
 const canvas = document.getElementById('drawingCanvas');
@@ -15,122 +15,98 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Drawing particles - each stroke is stored with timestamp
-const strokes = [];
+// Trail points - each point stored with timestamp
+const trailPoints = [];
+const maxTrailLength = 50; // Maximum points in trail
 
 // Drawing settings
-const strokeColor = 'rgba(255, 215, 0, 0.8)'; // Gold
-const strokeWidth = 3;
+const trailColor = 'rgba(255, 215, 0, 0.6)'; // Gold with transparency
+const trailWidth = 2;
 const fadeTime = 1000; // 1 second in milliseconds
 
-// Mouse tracking
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
+// Track mouse position
+let lastX = -100;
+let lastY = -100;
+let lastTime = Date.now();
 
-// Mouse down - start drawing
-document.addEventListener('mousedown', (e) => {
-    isDrawing = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
-});
-
-// Mouse move - draw line
+// Mouse move - add trail points
 document.addEventListener('mousemove', (e) => {
-    if (!isDrawing) return;
-
+    const currentTime = Date.now();
     const currentX = e.clientX;
     const currentY = e.clientY;
 
-    // Store this stroke with timestamp
-    strokes.push({
-        x1: lastX,
-        y1: lastY,
-        x2: currentX,
-        y2: currentY,
-        timestamp: Date.now()
-    });
+    // Only add point if mouse actually moved
+    if (lastX !== currentX || lastY !== currentY) {
+        // Add new point
+        trailPoints.push({
+            x: currentX,
+            y: currentY,
+            timestamp: currentTime
+        });
+
+        // Limit trail length
+        if (trailPoints.length > maxTrailLength) {
+            trailPoints.shift();
+        }
+    }
 
     lastX = currentX;
     lastY = currentY;
+    lastTime = currentTime;
 });
 
-// Mouse up - stop drawing
-document.addEventListener('mouseup', () => {
-    isDrawing = false;
-});
-
-// Mouse leave - stop drawing
-document.addEventListener('mouseleave', () => {
-    isDrawing = false;
-});
-
-// Touch support
-let touchActive = false;
-
-document.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    touchActive = true;
-    const touch = e.touches[0];
-    lastX = touch.clientX;
-    lastY = touch.clientY;
-}, { passive: false });
-
+// Touch support for mobile
 document.addEventListener('touchmove', (e) => {
-    if (!touchActive) return;
     e.preventDefault();
-
     const touch = e.touches[0];
-    const currentX = touch.clientX;
-    const currentY = touch.clientY;
+    const currentTime = Date.now();
 
-    // Store this stroke with timestamp
-    strokes.push({
-        x1: lastX,
-        y1: lastY,
-        x2: currentX,
-        y2: currentY,
-        timestamp: Date.now()
+    trailPoints.push({
+        x: touch.clientX,
+        y: touch.clientY,
+        timestamp: currentTime
     });
 
-    lastX = currentX;
-    lastY = currentY;
+    if (trailPoints.length > maxTrailLength) {
+        trailPoints.shift();
+    }
 }, { passive: false });
 
-document.addEventListener('touchend', () => {
-    touchActive = false;
-});
-
-// Animation loop - render and fade strokes
+// Animation loop - render trail with fade effect
 function animate() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const now = Date.now();
 
-    // Draw all strokes with opacity based on age
-    for (let i = strokes.length - 1; i >= 0; i--) {
-        const stroke = strokes[i];
-        const age = now - stroke.timestamp;
+    // Remove old points (older than fadeTime)
+    while (trailPoints.length > 0 && now - trailPoints[0].timestamp > fadeTime) {
+        trailPoints.shift();
+    }
 
-        // Remove strokes older than fadeTime
-        if (age > fadeTime) {
-            strokes.splice(i, 1);
-            continue;
+    // Draw trail
+    if (trailPoints.length > 1) {
+        for (let i = 0; i < trailPoints.length - 1; i++) {
+            const point = trailPoints[i];
+            const nextPoint = trailPoints[i + 1];
+            const age = now - point.timestamp;
+
+            // Skip if too old
+            if (age > fadeTime) continue;
+
+            // Calculate opacity based on age
+            const opacity = (1 - age / fadeTime) * 0.6;
+
+            // Draw line segment
+            ctx.beginPath();
+            ctx.moveTo(point.x, point.y);
+            ctx.lineTo(nextPoint.x, nextPoint.y);
+            ctx.strokeStyle = `rgba(255, 215, 0, ${opacity})`;
+            ctx.lineWidth = trailWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke();
         }
-
-        // Calculate opacity (1 to 0 over fadeTime)
-        const opacity = 1 - (age / fadeTime);
-
-        // Draw stroke
-        ctx.beginPath();
-        ctx.moveTo(stroke.x1, stroke.y1);
-        ctx.lineTo(stroke.x2, stroke.y2);
-        ctx.strokeStyle = `rgba(255, 215, 0, ${opacity * 0.8})`;
-        ctx.lineWidth = strokeWidth;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.stroke();
     }
 
     requestAnimationFrame(animate);
@@ -139,4 +115,4 @@ function animate() {
 // Start animation loop
 animate();
 
-console.log('🎨 Click and drag to draw - your marks fade after 1 second!');
+console.log('🎨 Move your cursor to see the magical trail!');
