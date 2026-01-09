@@ -10,56 +10,62 @@
     <link rel="shortcut icon" href="favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-    <link href="https://fonts.googleapis.com/css2?family=Gloock&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="drawingCanvas"></canvas>
+
     <div class="container">
-        <h1 class="fade-in">we create miracles.</h1>
+        <div class="hero">
+            <h1 class="hero-title">We create miracles</h1>
+        </div>
 
-        <div class="social-links fade-in">
-            <a href="https://www.youtube.com/@abbiDogan" class="social-link" aria-label="YouTube @abbiDogan">
+        <div class="social-links">
+            <a href="https://www.youtube.com/@abbiDogan" class="social-link">
                 <img src="youtube.png" alt="" class="social-icon">
-                @abbiDogan
+                <span>@abbiDogan</span>
             </a>
-            <a href="https://x.com/abbiDogan" class="social-link" aria-label="X @abbiDogan">
+            <a href="https://x.com/abbiDogan" class="social-link">
                 <img src="x.png" alt="" class="social-icon">
-                @abbiDogan
+                <span>@abbiDogan</span>
             </a>
-            <a href="https://www.instagram.com/abbidogan/" class="social-link" aria-label="Instagram @abbidogan">
+            <a href="https://www.instagram.com/abbidogan/" class="social-link">
                 <img src="instagram.png" alt="" class="social-icon">
-                @abbidogan
+                <span>@abbidogan</span>
             </a>
         </div>
 
-        <div class="section holo-section fade-in">
-            <img src="podcast.png" alt="" class="section-icon">
-            <div class="section-content">
-                <h2>focused conversations</h2>
-                <p>my podcast where I talk with creatives, entrepreneurs and coaches.</p>
-            </div>
-            <a href="https://www.youtube.com/@abbiDogan" class="section-button">listen now</a>
+        <div class="content-cards">
+            <a href="https://www.youtube.com/@abbiDogan" class="card">
+                <img src="podcast.png" alt="" class="card-icon">
+                <div class="card-content">
+                    <h2 class="card-title">Focused conversations</h2>
+                    <p class="card-description">My podcast with creatives entrepreneurs.</p>
+                </div>
+                <span class="card-action">listen now</span>
+            </a>
+
+            <a href="https://abbidogan.substack.com/" class="card">
+                <img src="email.png" alt="" class="card-icon">
+                <div class="card-content">
+                    <h2 class="card-title">Focused letters</h2>
+                    <p class="card-description">Thoughts on creativity, analogue living and focus.</p>
+                </div>
+                <span class="card-action">sign up</span>
+            </a>
+
+            <a href="https://whop.com/focused-entrepreneur" class="card">
+                <img src="whop.png" alt="" class="card-icon">
+                <div class="card-content">
+                    <h2 class="card-title">Focused entrepreneur</h2>
+                    <p class="card-description">Transform scrolling into meaningful work.</p>
+                </div>
+                <span class="card-action">learn more</span>
+            </a>
         </div>
 
-        <div class="section holo-section fade-in">
-            <img src="email.png" alt="" class="section-icon">
-            <div class="section-content">
-                <h2>focused letters</h2>
-                <p>sometimes daily, sometimes weekly emails.</p>
-            </div>
-            <a href="https://abbidogan.substack.com/" class="section-button">sign up</a>
-        </div>
-
-        <div class="section holo-section fade-in">
-            <img src="whop.png" alt="" class="section-icon">
-            <div class="section-content">
-                <h2>focused entrepreneur</h2>
-                <p>the only resource you need to turn scrolling into meaningful work.</p>
-            </div>
-            <a href="https://whop.com/focused-entrepreneur" class="section-button">learn more</a>
-        </div>
-
-        <footer class="fade-in">© 2025 Abbi</footer>
+        <footer class="footer">© 2025 Abbi</footer>
     </div>
 
     <script src="main.js"></script>
